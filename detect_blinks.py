@@ -9,6 +9,8 @@ import time
 import dlib
 import cv2
 import morse_code
+import keyboard
+import sys
 
 
 def eye_aspect_ratio(eye):
@@ -40,17 +42,21 @@ args = vars(ap.parse_args())
 # frames the eye must be below the threshold
 EYE_AR_THRESH = 0.26
 EYE_AR_CONSEC_FRAMES = 4
-EYE_AR_CONSEC_FRAMES_CLOSED = 20
-PAUSE_CONSEC_FRAMES = 40
-WORD_PAUSE_CONSEC_FRAMES = 90
+EYE_AR_CONSEC_FRAMES_CLOSED = 15
+PAUSE_CONSEC_FRAMES = 30
+WORD_PAUSE_CONSEC_FRAMES = 60
+BREAK_LOOP_FRAMES = 90
 # initialize the frame counters and the total number of blinks
 COUNTER = 0
+BREAK_COUNTER = 0
 TOTAL = 0
 EYES_OPEN_COUNTER = 0
 CLOSED_EYES = False
 PAUSED = False
 WORD_PAUSE = False
 morse_str = ""
+total_morse_str = ""
+morse_screen = ""
 
 
 # initialize dlib's face detector (HOG-based) and then create
@@ -66,6 +72,7 @@ predictor = dlib.shape_predictor(args["shape_predictor"])
 
 # start the video stream thread
 print("[INFO] starting video stream thread...")
+print("[INFO] Type ']' or close eyes for {} frames to exit".format(BREAK_LOOP_FRAMES))
 # vs = FileVideoStream(args["video"]).start()
 # fileStream = True
 vs = VideoStream(src=0).start()
@@ -111,21 +118,29 @@ while True:
 		# threshold, and if so, increment the blink frame counter
 		if eye_ar < EYE_AR_THRESH:
 			COUNTER += 1
+			BREAK_COUNTER += 1
 			if COUNTER >= EYE_AR_CONSEC_FRAMES:
 				CLOSED_EYES = True
-			# if PAUSED and EYES_OPEN_COUNTER >= PAUSE_CONSEC_FRAMES:
-			# 	morse_str += '/'
-			# 	PAUSED = False
-			# 	CLOSED_EYES = False
-			# 	EYES_OPEN_COUNTER = 0
+			# Reset morse that appears on screen if it had just been '/'
+			if not PAUSED:
+				morse_screen = ""
 		# otherwise, the eye aspect ratio is not below the blink
 		# threshold
 		else:
+			# Eyes closed for long enough to close program. 
+			if (BREAK_COUNTER >= BREAK_LOOP_FRAMES):
+				break
+			# Eyes weren't closed for that long 
+			else:
+				BREAK_COUNTER = 0
 			# if the eyes were closed for a sufficient number of
 			# then increment the total number of blinks
 			EYES_OPEN_COUNTER += 1
+			# Dash detected as eyes closed for long time.
 			if COUNTER >= EYE_AR_CONSEC_FRAMES_CLOSED:
 				morse_str += "-"
+				total_morse_str += "-"
+				morse_screen += "-"
 				# reset the eye frame counter
 				COUNTER = 0
 				CLOSED_EYES = False
@@ -133,6 +148,8 @@ while True:
 				EYES_OPEN_COUNTER = 0
 			elif CLOSED_EYES:
 				morse_str += "."
+				total_morse_str += "."
+				morse_screen += "."
 				TOTAL += 1
 				COUNTER = 1
 				CLOSED_EYES = False
@@ -140,43 +157,48 @@ while True:
 				EYES_OPEN_COUNTER = 0
 			elif PAUSED and EYES_OPEN_COUNTER >= PAUSE_CONSEC_FRAMES:
 				morse_str += '/'
+				total_morse_str += '/'
+				morse_screen = "/"
 				PAUSED = False
 				WORD_PAUSE = True
 				CLOSED_EYES = False
 				EYES_OPEN_COUNTER = 0
-			elif WORD_PAUSE and EYES_OPEN_COUNTER >= WORD_PAUSE_CONSEC_FRAMES:
-				# Remove '/' as it was a word pause not a char pause
-				morse_str = morse_str[:-1]
-				morse_str += '/-..-./'
+			elif (WORD_PAUSE and EYES_OPEN_COUNTER >= 
+					WORD_PAUSE_CONSEC_FRAMES):
+				# '/' already in str from char pause, '¦' is converted to 
+				# a ' ' (space) char.
+				morse_str += '¦/'
+				total_morse_str += '¦/'
+				morse_screen = ""
 				WORD_PAUSE = False
 				CLOSED_EYES = False
 				EYES_OPEN_COUNTER = 0
+				keyboard.write(morse_code.from_morse(morse_str))
+				morse_str = ""
 
 		# draw the total number of blinks on the frame along with
 		# the computed eye aspect ratio for the frame
-		cv2.putText(frame, "Blinks: {}".format(TOTAL), (10, 30),
-			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 		cv2.putText(frame, "EAR: {:.2f}".format(eye_ar), (300, 30),
 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-		cv2.putText(frame, "morse_str: {}".format(morse_str), (10, 300),
-			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+		cv2.putText(frame, "{}".format(morse_screen), (30, 200),
+			cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-		print('morse_str: {}\r'.format(morse_str), end="")
+		print("\033[K", "morse_str: {}".format(morse_str), end="\r")
 
 	# show the frame
 	cv2.imshow("Frame", frame)
 	key = cv2.waitKey(1) & 0xFF
 
-	# if the `q` key was pressed, break from the loop
-	if key == ord("q"):
+	# if the `]` key was pressed, break from the loop
+	if key == ord("]") or (BREAK_COUNTER >= 150):
+		keyboard.write(morse_code.from_morse(morse_str))
 		break
 # do a bit of cleanup
 cv2.destroyAllWindows()
 vs.stop()
 
-
-print("morse_str: ", morse_str)
-print("from_morse(morse_str): ", morse_code.from_morse(morse_str))
+print("Morse Code: ", total_morse_str.replace("¦", " "))
+print("Translated: ", morse_code.from_morse(total_morse_str))
 
 # HELLO WORLD
 # .... . .-.. .-.. --- / .-- --- .-. .-.. -..
