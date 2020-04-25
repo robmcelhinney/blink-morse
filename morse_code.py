@@ -10,14 +10,14 @@ alphaToMorse = {'a': ".-", 'b': "-...", 'c': "-.-.", 'd': "-..", 'e': ".",
                 '@': ".--.-.", '-': "-....-", '"': ".-..-.", ':': "---...", ';': "---...",
                 '=': "-...-", '!': "-.-.--", '/': "-..-.", '(': "-.--.", ')': "-.--.-"}
 
-CODE_REVERSED = {value:key for key,value in alphaToMorse.items()}
+MORSE_REVERSED = {value:key for key,value in alphaToMorse.items()}
 
 def from_morse(s):
     result = ""
-    for i in s.split('/'):
-        if i in CODE_REVERSED:
-            result += CODE_REVERSED.get(i)
+    for i in s.split("/"):
+        if i in MORSE_REVERSED:
+            result += MORSE_REVERSED.get(i)
         else:
-            if (i != ''):
+            if (i != ""):
                 print(i + " could not be translated.")
     return result
