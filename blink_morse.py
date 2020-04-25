@@ -4,12 +4,10 @@ from imutils import face_utils
 import numpy as np
 import argparse
 import imutils
-import time
 import dlib
 import cv2
-import morse_code
 import keyboard
-import sys
+import morse_code
 import constants
 
 
