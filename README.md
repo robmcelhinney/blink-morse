@@ -1,6 +1,9 @@
 # Blink Morse
 Eye blink detection of morse code that types.
 
+## Demo
+![Blinking Hello World](demo/sample.gif)
+
 ## Requirements
 Download dlib pre-trained facial landmark predictor available at [dlib.net](http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2)
 
