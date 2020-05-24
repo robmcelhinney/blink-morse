@@ -1,5 +1,5 @@
 # Blink Morse
-Eye blink detection of morse code that types.
+Eye blink detection of Morse code that types.
 
 ## Demo
 ![Blinking Hello World](demo/sample.gif)
@@ -24,7 +24,7 @@ To exit the program:
 ### Change variables
 I'd suggest you change the variables in constants.py so your blinks are better recognised.
 
-By editing the variables you can give yourself more time before the next blink/pause is detected making morse code easier to input. 
+By editing the variables you can give yourself more time before the next blink/pause is detected making Morse code easier to input. 
 
 ## Built With
 
@@ -32,6 +32,9 @@ By editing the variables you can give yourself more time before the next blink/p
 * OpenCV - Library mainly aimed at real-time computer vision.
 * imutils - Series of convenience functions to make basic image processing functions.
 
+
+## Inspiration
+US Admiral Jeremiah Denton was taken prisoner during the Vietnam War and was forced to participate in a propaganda interview, he blinked his eyes in Morse code, spelling T-O-R-T-U-R-E to confirm that US POWs were being tortured. [[Wiki](https://en.wikipedia.org/wiki/Jeremiah_Denton#Vietnam_War)][[Footage](https://youtu.be/rufnWLVQcKg)]
 
 ## Acknowledgments
 Blink detection based off of tutorial from [pyimagesearch](https://pyimagesearch.com/2017/04/24/eye-blink-detection-opencv-python-dlib).
